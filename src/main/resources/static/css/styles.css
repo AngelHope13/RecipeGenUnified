@@ -1,0 +1,230 @@
+/* Global Styles */
+body {
+    margin: 0;
+    background-color: #fefefe;
+    font-family: 'Poppins', sans-serif;
+    color: #2f2f2f;
+    line-height: 1.6;
+}
+
+header {
+    background-color: #f6c90e;
+    color: #1b5e20;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.header-logo {
+    height: 50px;
+}
+
+.hero-title {
+    font-size: 1.8em;
+    margin: 0;
+}
+
+/* Meal Detail Layout */
+.meal-detail-container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.meal-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    text-align: center;
+}
+
+.meal-image {
+    max-width: 100%;
+    border-radius: 12px;
+    border: 2px solid #f6c90e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.meal-info h2 {
+    margin: 10px 0;
+    font-size: 1.5em;
+    color: #1b5e20;
+}
+
+.meal-meta p {
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+.ingredients-section,
+.instructions-section,
+.video-section,
+.affirmation {
+    margin-top: 30px;
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.ingredients {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.ingredients div {
+    text-align: center;
+    font-size: 0.9em;
+    background-color: #f9fbe7;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #c8e6c9;
+}
+
+.instructions-section h3,
+.ingredients-section h3,
+.video-section h3 {
+    color: #1b5e20;
+    margin-bottom: 15px;
+}
+
+.affirmation {
+    font-style: italic;
+    color: #388e3c;
+    text-align: center;
+    background-color: #f1f8e9;
+    animation: fadeInUp 0.4s ease forwards;
+    margin-top: 30px;
+}
+
+/* Resulted Recipes Section */
+#resultedRecipes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Recipe Card Enhancements */
+.result-card {
+    display: block;
+    text-align: center;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    background: white;
+}
+
+.result-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.result-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+}
+
+.result-card h4 {
+    margin: 10px;
+    font-size: 1.1em;
+    color: #2f2f2f;
+}
+
+/* Chatbot Section */
+#chatbotSection {
+    padding: 20px;
+    background-color: #f1f8e9;
+    border-top: 2px solid #c5e1a5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#chatForm {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 600px;
+}
+
+#chatForm input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #c5e1a5;
+    background: #fff;
+}
+
+#chatForm button {
+    background-color: #f6c90e;
+    color: #1b5e20;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#chatBox {
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 600px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+}
+
+/* Search Filters */
+.search-filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: #fefefe;
+    border-top: 2px solid #eee;
+}
+
+.dropdown-country select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.checkbox-filters label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f9fbe7;
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid #c8e6c9;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    #chatForm {
+        flex-direction: column;
+    }
+    .search-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

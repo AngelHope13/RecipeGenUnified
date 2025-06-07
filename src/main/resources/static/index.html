@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recipe Explorer</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/carousel.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" />
+</head>
+<body>
+<header>
+    <img src="images/logo.png" alt="Logo" class="header-logo" />
+    <h1 class="hero-title">🍽️ Recipe Explorer</h1>
+</header>
+
+<!-- Chatbot Input Section -->
+<section id="chatbotSection">
+    <div class="chat-box" id="chatBox"></div>
+    <form id="chatForm" onsubmit="sendMessage(); return false;">
+        <input type="text" id="userInput" placeholder="Type ingredients like 'carrot and eggs'..." autocomplete="off" />
+        <button type="submit">Send</button>
+    </form>
+</section>
+
+<!-- Filters and Country Dropdown -->
+<section class="search-filters">
+    <div class="dropdown-country">
+        <label for="countrySelect">Choose a nationality:</label>
+        <select id="countrySelect"></select>
+    </div>
+
+    <div class="checkbox-filters">
+        <label><input type="checkbox" id="vegetarianFilter" /> Vegetarian</label>
+        <label><input type="checkbox" id="lowFatFilter" /> Low Fat</label>
+        <label><input type="checkbox" id="under30Filter" /> Under 30 Minutes</label>
+    </div>
+</section>
+
+<!-- Recipe Suggestions via Chatbot -->
+<section id="resultedRecipes" class="single-column">
+    <!-- Recipes will be inserted here -->
+</section>
+
+<!-- Main Search Engine & Carousel -->
+<section id="searchEngine">
+    <div class="search-section">
+        <input type="text" id="searchInput" placeholder="Search for a meal..." oninput="searchMeals()" />
+    </div>
+
+    <div id="carouselContainer"></div>
+    <div class="meal-grid" id="mealGrid"></div>
+
+    <div class="alphabet-filter" id="alphabetFilter">
+        <!-- Alphabet links -->
+        <!-- Can be kept as-is or dynamically generated -->
+        <!-- A–Z links here... -->
+    </div>
+</section>
+
+<footer>
+    <img src="images/logo.png" alt="Logo" class="logo" />
+    <div class="footer-links">
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+        <a href="#">GitHub</a>
+    </div>
+    <p>&copy; 2025 Recipe Explorer. All rights reserved.</p>
+</footer>
+
+<script src="js/script.js"></script>
+<script src="js/carousel.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meal Details</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" />
+</head>
+<body>
+<header>
+    <img src="images/logo.png" alt="Logo" class="header-logo" />
+    <h1 class="hero-title">🍴 Meal Details</h1>
+</header>
+
+<main class="meal-detail-container">
+    <section class="meal-header">
+        <img id="mealImage" class="meal-image" src="" alt="Meal Image" />
+        <div class="meal-info">
+            <h2 id="mealTitle"></h2>
+            <div class="meal-meta">
+                <p><strong>Preparation Time:</strong> ~30 minutes</p>
+                <p><strong>Cooking Materials:</strong> Pan, Knife, Bowl</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="ingredients-section">
+        <h3>Ingredients</h3>
+        <div class="ingredients" id="ingredients"></div>
+    </section>
+
+    <section class="instructions-section" id="instructions"></section>
+
+    <section class="video-section" id="videoSection" style="display:none;">
+        <h3>Watch How to Make It</h3>
+        <iframe id="mealVideo" width="100%" height="315" frameborder="0" allowfullscreen></iframe>
+    </section>
+
+    <section class="affirmation">
+        <blockquote>"Great meals start with great choices. Keep nourishing your body and mind!"</blockquote>
+    </section>
+</main>
+
+<footer>
+    <img src="images/logo.png" alt="Logo" class="logo" />
+    <div class="footer-links">
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+        <a href="#">GitHub</a>
+    </div>
+    <p>&copy; 2025 Recipe Explorer. All rights reserved.</p>
+</footer>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const mealId = params.get('id');
+
+    if (mealId) {
+        fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${mealId}`)
+            .then(res => res.json())
+            .then(data => displayMeal(data.meals[0]))
+            .catch(err => {
+                console.error('Error fetching meal:', err);
+                document.getElementById('mealTitle').textContent = 'Meal not found.';
+            });
+    }
+
+    function displayMeal(meal) {
+        document.getElementById('mealImage').src = meal.strMealThumb;
+        document.getElementById('mealTitle').textContent = meal.strMeal;
+
+        const ingredientsDiv = document.getElementById('ingredients');
+        ingredientsDiv.innerHTML = '';
+        for (let i = 1; i <= 20; i++) {
+            const ingredient = meal[`strIngredient${i}`];
+            const measure = meal[`strMeasure${i}`];
+            if (ingredient && ingredient.trim()) {
+                const div = document.createElement('div');
+                div.innerHTML = `<strong>${measure}</strong><br>${ingredient}`;
+                ingredientsDiv.appendChild(div);
+            }
+        }
+
+        document.getElementById('instructions').innerHTML = `
+        <h3>Instructions</h3>
+        <p>${meal.strInstructions}</p>
+      `;
+
+        if (meal.strYoutube) {
+            const videoId = meal.strYoutube.split('v=')[1];
+            const ampIndex = videoId.indexOf('&');
+            const cleanVideoId = ampIndex > -1 ? videoId.substring(0, ampIndex) : videoId;
+
+            const videoFrame = document.getElementById('mealVideo');
+            videoFrame.src = `https://www.youtube.com/embed/${cleanVideoId}`;
+            document.getElementById('videoSection').style.display = 'block';
+        }
+    }
+</script>
+</body>
+</html>
