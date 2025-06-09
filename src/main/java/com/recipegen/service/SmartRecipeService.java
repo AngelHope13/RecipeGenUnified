@@ -20,10 +20,10 @@ public class SmartRecipeService {
     public Map<String, Object> handleSmartChat(String message, String area, Map<String, Boolean> filters) {
         Map<String, Object> response = new HashMap<>();
 
-        // Step 1: Translate to English
+        // Step 1: Translate input
         String english = translationService.translateToEnglish(message);
 
-        // Step 2: Tokenize and match known ingredients
+        // Step 2: Match input with known ingredients
         List<String> knownIngredients = fetchAllIngredients();
         List<String> words = Arrays.stream(english.toLowerCase().split("[ ,.!?]+"))
                 .collect(Collectors.toList());
@@ -38,14 +38,14 @@ public class SmartRecipeService {
             }
         }
 
-        // Step 3: Reply if nothing matched
+        // Step 3: Handle no matches
         if (matched.isEmpty()) {
             response.put("reply", "😥 Sorry, I couldn't recognize any ingredients in your message.");
             response.put("recipes", Collections.emptyList());
             return response;
         }
 
-        // Step 4: Fetch full match recipes
+        // Step 4: Full match
         List<Map<String, String>> meals = fetchRecipes(String.join(",", matched), area);
 
         StringBuilder reply = new StringBuilder();
@@ -53,7 +53,7 @@ public class SmartRecipeService {
             meals = applyFilters(meals, filters);
             reply.append("🍽️ Here are recipes based on your ingredients:\n\n");
         } else {
-            // Step 5: If no full match, fallback to partial match
+            // Step 5: Partial match fallback
             reply.append("🔍 No full matches found. Showing partial results:\n\n");
             Set<String> seen = new HashSet<>();
             meals = new ArrayList<>();
@@ -72,13 +72,11 @@ public class SmartRecipeService {
             }
         }
 
-        // Step 6: Add meal names to reply
         for (int i = 0; i < Math.min(5, meals.size()); i++) {
             String name = meals.get(i).get("strMeal");
             reply.append("• ").append(addIngredientEmojis(name)).append("\n");
         }
 
-        // Final response
         response.put("reply", reply.toString());
         response.put("recipes", meals);
         return response;
@@ -98,13 +96,28 @@ public class SmartRecipeService {
             ResponseEntity<Map> res = restTemplate.getForEntity(url, Map.class);
             List<Map<String, String>> meals = (List<Map<String, String>>) res.getBody().get("meals");
 
-            if (area != null && !area.isEmpty() && meals != null) {
-                meals = meals.stream()
-                        .filter(m -> area.equalsIgnoreCase(m.get("strArea")))
-                        .collect(Collectors.toList());
+            if (meals == null) return Collections.emptyList();
+
+            // 🗺️ Filter by area using meal lookup
+            if (area != null && !area.isEmpty()) {
+                List<Map<String, String>> filtered = new ArrayList<>();
+                for (Map<String, String> meal : meals) {
+                    String id = meal.get("idMeal");
+                    String detailUrl = "https://www.themealdb.com/api/json/v1/1/lookup.php?i=" + id;
+                    ResponseEntity<Map> detailRes = restTemplate.getForEntity(detailUrl, Map.class);
+                    List<Map<String, String>> details = (List<Map<String, String>>) detailRes.getBody().get("meals");
+
+                    if (details != null && !details.isEmpty()) {
+                        String mealArea = details.get(0).get("strArea");
+                        if (area.equalsIgnoreCase(mealArea)) {
+                            filtered.add(meal);
+                        }
+                    }
+                }
+                meals = filtered;
             }
 
-            return meals != null ? meals : Collections.emptyList();
+            return meals;
         } catch (Exception e) {
             System.err.println("⚠️ Error fetching recipes: " + e.getMessage());
             return Collections.emptyList();

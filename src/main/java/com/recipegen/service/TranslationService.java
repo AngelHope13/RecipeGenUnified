@@ -12,38 +12,47 @@ public class TranslationService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public String translateToEnglish(String input) {
-        String url = "https://libretranslate.de/translate";
+    // 🔄 You can swap this with your local LibreTranslate container later if needed
+    private static final String TRANSLATE_URL = "https://libretranslate.de/translate";
 
-        // Prepare headers
+    public String translateToEnglish(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return "";
+        }
+
+        // Setup headers
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Prepare request body
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("q", input);
-        requestBody.put("source", "auto");
-        requestBody.put("target", "en");
-        requestBody.put("format", "text");
+        // Prepare request payload
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("q", input);
+        payload.put("source", "auto");
+        payload.put("target", "en");
+        payload.put("format", "text");
 
-        // Wrap into HttpEntity
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
 
         try {
-            // Make POST request
-            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
-            Map<String, Object> result = response.getBody();
+            ResponseEntity<Map> response = restTemplate.exchange(TRANSLATE_URL, HttpMethod.POST, request, Map.class);
 
-            if (result != null && result.containsKey("translatedText")) {
-                return result.get("translatedText").toString();
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Object translated = response.getBody().get("translatedText");
+                if (translated != null) {
+                    System.out.println("🔤 Translated to English: " + translated);
+                    return translated.toString();
+                } else {
+                    System.err.println("⚠️ Missing 'translatedText' in response.");
+                }
             } else {
-                System.err.println("Translation API returned no translation.");
-                return input;
+                System.err.println("⚠️ Translation API returned non-OK status: " + response.getStatusCode());
             }
 
         } catch (Exception e) {
             System.err.println("⚠️ Translation error: " + e.getMessage());
-            return input; // Fallback: return original input
         }
+
+        // Fallback: original input
+        return input;
     }
 }
