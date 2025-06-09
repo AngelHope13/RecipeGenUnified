@@ -1,81 +1,91 @@
-// js/mealDetail.js
+// mealDetail.js
 
-// Get the meal ID from the URL
+// 1. Extract Meal ID from URL
 const params = new URLSearchParams(window.location.search);
-const mealId = params.get('id');
+const mealId = params.get("id");
 
-// Show loading state
-document.getElementById('mealTitle').textContent = 'Loading...';
+// 2. Elements to update
+const mealTitleEl = document.getElementById("mealTitle");
+const mealImageEl = document.getElementById("mealImage");
+const ingredientsEl = document.getElementById("ingredients");
+const instructionsEl = document.getElementById("instructions");
+const videoSectionEl = document.getElementById("videoSection");
 
+// 3. Initial UI State
+mealTitleEl.textContent = "Loading...";
+
+// 4. Fetch and Display Meal
 if (mealId) {
     fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${mealId}`)
         .then(res => res.json())
         .then(data => displayMeal(data.meals?.[0]))
         .catch(err => {
-            console.error('Error fetching meal:', err);
-            document.getElementById('mealTitle').textContent = 'Meal not found.';
+            console.error("❌ Error fetching meal:", err);
+            mealTitleEl.textContent = "⚠️ Meal not found.";
         });
 } else {
-    document.getElementById('mealTitle').textContent = 'No meal ID provided.';
+    mealTitleEl.textContent = "⚠️ No meal ID provided.";
 }
 
+// 5. Display Logic
 function displayMeal(meal) {
     if (!meal) {
-        document.getElementById('mealTitle').textContent = 'Meal not found.';
+        mealTitleEl.textContent = "⚠️ Meal not found.";
         return;
     }
 
-    // Meal title and image
-    document.getElementById('mealImage').src = meal.strMealThumb;
-    document.getElementById('mealTitle').textContent = meal.strMeal;
+    // Set meal title and image
+    mealTitleEl.textContent = meal.strMeal;
+    mealImageEl.src = meal.strMealThumb;
+    mealImageEl.alt = meal.strMeal;
 
-    // Ingredients and measurements
-    const ingredientsDiv = document.getElementById('ingredients');
-    ingredientsDiv.innerHTML = '<h3>Ingredients</h3>';
+    // Render Ingredients
+    ingredientsEl.innerHTML = "<h3>Ingredients</h3>";
     for (let i = 1; i <= 20; i++) {
         const ingredient = meal[`strIngredient${i}`];
         const measure = meal[`strMeasure${i}`];
+
         if (ingredient && ingredient.trim()) {
-            const div = document.createElement('div');
-            div.innerHTML = `<strong>${ingredient}</strong>: ${measure}`;
-            ingredientsDiv.appendChild(div);
+            const item = document.createElement("div");
+            item.innerHTML = `<strong>${ingredient}</strong>: ${measure}`;
+            ingredientsEl.appendChild(item);
         }
     }
 
-    // Cooking instructions
-    document.getElementById('instructions').innerHTML = `
-        <h3>Instructions</h3>
-        <p>${meal.strInstructions}</p>
-    `;
+    // Cooking Instructions
+    instructionsEl.innerHTML = `
+    <h3>Instructions</h3>
+    <p>${meal.strInstructions}</p>
+  `;
 
-    // YouTube video section
-    const videoSection = document.getElementById('videoSection');
-    const videoFrame = document.getElementById('mealVideo');
-    videoSection.innerHTML = ''; // clear in case reused
-
+    // YouTube Video
+    videoSectionEl.innerHTML = "";
     if (meal.strYoutube) {
-        const videoId = meal.strYoutube.split('v=')[1];
-        const ampIndex = videoId.indexOf('&');
-        const cleanVideoId = ampIndex > -1 ? videoId.substring(0, ampIndex) : videoId;
-
-        const iframe = document.createElement('iframe');
-        iframe.id = 'mealVideo';
-        iframe.width = '100%';
-        iframe.height = '400';
-        iframe.src = `https://www.youtube.com/embed/${cleanVideoId}`;
+        const videoId = extractYouTubeID(meal.strYoutube);
+        const iframe = document.createElement("iframe");
+        iframe.width = "100%";
+        iframe.height = "400";
+        iframe.src = `https://www.youtube.com/embed/${videoId}`;
         iframe.allowFullscreen = true;
+        iframe.style.borderRadius = "12px";
 
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = meal.strYoutube;
-        link.textContent = 'Watch on YouTube';
-        link.target = '_blank';
-        link.style.display = 'block';
-        link.style.marginTop = '10px';
+        link.target = "_blank";
+        link.textContent = "▶ Watch on YouTube";
+        link.style.display = "block";
+        link.style.marginTop = "10px";
 
-        videoSection.appendChild(iframe);
-        videoSection.appendChild(link);
-        videoSection.style.display = 'block';
+        videoSectionEl.appendChild(iframe);
+        videoSectionEl.appendChild(link);
+        videoSectionEl.style.display = "block";
     } else {
-        videoSection.style.display = 'none';
+        videoSectionEl.style.display = "none";
     }
+}
+
+// Utility: Extract YouTube Video ID
+function extractYouTubeID(url) {
+    const match = url.match(/[?&]v=([^&]+)/);
+    return match ? match[1] : null;
 }

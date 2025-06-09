@@ -9,24 +9,35 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" />
 </head>
 <body>
+
+<!-- Header -->
 <header>
     <img src="images/logo.png" alt="Logo" class="header-logo" />
     <h1 class="hero-title">🍽️ Recipe Explorer</h1>
 </header>
 
 <!-- Chatbot Input Section -->
-<section id="chatbotSection">
-    <div class="chat-box" id="chatBox"></div>
-    <form id="chatForm" onsubmit="sendMessage(); return false;">
-        <input type="text" id="userInput" placeholder="Type ingredients like 'carrot and eggs'..." autocomplete="off" />
+<section id="chatbotSection" class="section-padded">
+    <div class="chat-box" id="chatBox">
+        <div class="bot-message">👋 Hi there! Type your ingredients and I’ll help you cook something delicious.</div>
+    </div>
+    <form id="chatForm" onsubmit="sendMessage(); return false;" class="chat-form">
+        <input
+                type="text"
+                id="userInput"
+                placeholder="Type ingredients like 'carrot and eggs'..."
+                autocomplete="off"
+                required
+        />
         <button type="submit">Send</button>
+        <button type="button" onclick="clearChat()" class="clear-btn">Clear</button>
     </form>
 </section>
 
 <!-- Filters and Country Dropdown -->
-<section class="search-filters">
+<section class="search-filters section-padded">
     <div class="dropdown-country">
-        <label for="countrySelect">Choose a nationality:</label>
+        <label for="countrySelect">🌍 Choose a nationality:</label>
         <select id="countrySelect"></select>
     </div>
 
@@ -38,26 +49,34 @@
 </section>
 
 <!-- Recipe Suggestions via Chatbot -->
-<section id="resultedRecipes" class="single-column">
+<section id="resultedRecipes" class="single-column section-padded">
     <!-- Recipes will be inserted here -->
 </section>
 
 <!-- Main Search Engine & Carousel -->
-<section id="searchEngine">
+<section id="searchEngine" class="section-padded">
     <div class="search-section">
-        <input type="text" id="searchInput" placeholder="Search for a meal..." oninput="searchMeals()" />
+        <input
+                type="text"
+                id="searchInput"
+                placeholder="🔍 Search for a meal..."
+                oninput="searchMeals()"
+        />
     </div>
 
-    <div id="carouselContainer"></div>
+    <div id="carouselContainer" class="carousel-wrapper"></div>
+
     <div class="meal-grid" id="mealGrid"></div>
 
     <div class="alphabet-filter" id="alphabetFilter">
-        <!-- Alphabet links -->
-        <!-- Can be kept as-is or dynamically generated -->
-        <!-- A–Z links here... -->
+        <!-- A–Z letter filters can be placed here -->
     </div>
 </section>
 
+<!-- Toast Notification -->
+<div id="toast" class="toast" style="display:none;"></div>
+
+<!-- Footer -->
 <footer>
     <img src="images/logo.png" alt="Logo" class="logo" />
     <div class="footer-links">
@@ -68,7 +87,9 @@
     <p>&copy; 2025 Recipe Explorer. All rights reserved.</p>
 </footer>
 
+<!-- JS Scripts -->
 <script src="js/script.js"></script>
 <script src="js/carousel.js"></script>
+
 </body>
 </html>

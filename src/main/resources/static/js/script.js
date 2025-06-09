@@ -1,4 +1,4 @@
-// JavaScript for generating clickable recipe cards
+// --- Generate Clickable Recipe Cards ---
 function displayRecipes(meals) {
     const resultContainer = document.getElementById("resultedRecipes");
     resultContainer.innerHTML = "";
@@ -13,30 +13,26 @@ function displayRecipes(meals) {
         card.className = "result-card";
         card.href = `meal_detail.html?id=${meal.idMeal}`;
         card.innerHTML = `
-          <img src="${meal.strMealThumb}" alt="${meal.strMeal}" />
-          <h4>${meal.strMeal}</h4>
+            <img src="${meal.strMealThumb}" alt="${meal.strMeal}" />
+            <h4>${meal.strMeal}</h4>
         `;
         resultContainer.appendChild(card);
     });
 }
 
-// Hook to chatbot form submission
+// --- Chatbot Interaction ---
 const chatForm = document.getElementById("chatForm");
+const chatBox = document.getElementById("chatBox");
+const userInput = document.getElementById("userInput");
+
 if (chatForm) {
     chatForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const input = document.querySelector("#chatForm input[type='text']");
-        const query = input.value.trim();
+        const query = userInput.value.trim();
         if (!query) return;
 
-        const chatBox = document.querySelector(".chat-box");
-        const userMsg = document.createElement("div");
-        userMsg.className = "message user";
-        userMsg.textContent = query;
-        chatBox.appendChild(userMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        input.value = "";
+        appendMessage("user", query);
+        userInput.value = "";
 
         const area = document.getElementById("countrySelect")?.value || "";
         const filters = {
@@ -53,35 +49,42 @@ if (chatForm) {
             });
 
             const result = await response.json();
-            console.log("✅ Received result from backend:", result);
-
-            const botMsg = document.createElement("div");
-            botMsg.className = "message bot";
-            botMsg.textContent = result.reply || "Here are some suggestions:";
-            chatBox.appendChild(botMsg);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            appendMessage("bot", result.reply || "Here are some suggestions:");
 
             if (Array.isArray(result.recipes) && result.recipes.length > 0) {
                 displayRecipes(result.recipes);
+                showToast("Recipes loaded!");
             } else {
-                console.warn("⚠️ No recipes found or recipe list is invalid:", result.recipes);
                 displayRecipes([]);
+                showToast("No recipes found.");
             }
         } catch (error) {
             console.error("❌ Chat error:", error);
-            const botMsg = document.createElement("div");
-            botMsg.className = "message bot";
-            botMsg.textContent = "Sorry, something went wrong.";
-            chatBox.appendChild(botMsg);
+            appendMessage("bot", "Sorry, something went wrong.");
+            showToast("Something went wrong.");
         }
     });
 }
 
-// --- Smart Suggestions Dropdown and Enhanced Chat Logic ---
-const mealGrid = document.getElementById("mealGrid");
-const userInput = document.getElementById("userInput");
-const chatBox = document.getElementById("chatBox");
+function appendMessage(sender, text) {
+    const msg = document.createElement("div");
+    msg.className = sender === "user" ? "user-message" : "bot-message";
+    msg.textContent = text;
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
 
+// --- Clear Chat ---
+function clearChat() {
+    const chatBox = document.getElementById("chatBox");
+    if (chatBox) {
+        chatBox.innerHTML = '';
+        appendMessage("bot", "Chat cleared. Start typing your ingredients again!");
+        showToast("Chat cleared.");
+    }
+}
+
+// --- Smart Suggestions Dropdown ---
 const suggestionBox = document.createElement("div");
 suggestionBox.id = "suggestionBox";
 suggestionBox.style.display = "none";
@@ -92,17 +95,14 @@ let selectedIndex = -1;
 
 userInput.addEventListener("input", async () => {
     const lastWord = userInput.value.trim().split(" ").pop();
-    if (!lastWord) {
-        hideSuggestions();
-        return;
-    }
+    if (!lastWord) return hideSuggestions();
 
     try {
         const res = await fetch(`http://localhost:8081/api/suggestions?input=${lastWord}`);
         suggestions = await res.json();
         selectedIndex = -1;
         showSuggestions(suggestions);
-    } catch (err) {
+    } catch {
         hideSuggestions();
     }
 });
@@ -128,7 +128,7 @@ userInput.addEventListener("keydown", (e) => {
 
 function showSuggestions(list) {
     suggestionBox.innerHTML = "";
-    list.forEach((item, index) => {
+    list.forEach(item => {
         const div = document.createElement("div");
         div.textContent = item;
         div.style.cursor = "pointer";
@@ -169,7 +169,7 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// --- Load Country Dropdown Dynamically ---
+// --- Load Nationalities Dropdown ---
 async function loadNationalities() {
     const select = document.getElementById("countrySelect");
     if (!select) return;
@@ -188,3 +188,48 @@ async function loadNationalities() {
     }
 }
 loadNationalities();
+
+// --- Toast Notification Setup ---
+function createToastElement() {
+    const toast = document.createElement("div");
+    toast.id = "toast";
+    toast.className = "toast";
+    document.body.appendChild(toast);
+
+    const style = document.createElement("style");
+    style.textContent = `
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #1b5e20;
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 12px;
+            position: fixed;
+            z-index: 999;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.95em;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: visibility 0s, opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function showToast(message = "Message sent!") {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+createToastElement();
