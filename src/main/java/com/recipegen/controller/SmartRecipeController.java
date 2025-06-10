@@ -1,11 +1,11 @@
 package com.recipegen.controller;
 
+import com.recipegen.service.ChatService;
 import com.recipegen.service.SmartRecipeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -14,27 +14,26 @@ import java.util.stream.Collectors;
 public class SmartRecipeController {
 
     private final SmartRecipeService smartRecipeService;
+    private final ChatService chatService;
 
-    public SmartRecipeController(SmartRecipeService smartRecipeService) {
+    public SmartRecipeController(SmartRecipeService smartRecipeService, ChatService chatService) {
         this.smartRecipeService = smartRecipeService;
+        this.chatService = chatService;
     }
 
     /**
-     * Chat endpoint for smart recipe generation based on user input.
-     * Accepts message, area (nationality), and optional filters.
+     * Chat endpoint for smart recipe generation and AI conversation.
+     * Accepts user message, area (nationality), and optional filters.
      */
     @PostMapping("/chat")
     public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, Object> request) {
-        // Validate message input
         Object msgObj = request.get("message");
         if (!(msgObj instanceof String message) || message.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid or missing message"));
         }
 
-        // Area (optional, default to "")
         String area = (String) request.getOrDefault("area", "");
 
-        // Filters (optional, cast safely)
         Map<String, Boolean> filters = null;
         Object filtersObj = request.get("filters");
         if (filtersObj instanceof Map<?, ?> map) {
@@ -50,14 +49,27 @@ public class SmartRecipeController {
             }
         }
 
-        // Delegate to service layer
-        Map<String, Object> response = smartRecipeService.handleSmartChat(message, area, filters);
-        return ResponseEntity.ok(response);
+        // 1. 🍳 Get recipe suggestions based on ingredients
+        Map<String, Object> recipeResponse = smartRecipeService.handleSmartChat(message, area, filters);
+        String recipeReply = (String) recipeResponse.getOrDefault("reply", "");
+
+        // 2. 🤖 Generate chatbot response using DeepSeek AI
+        String aiReply = chatService.getChatResponse(message);
+
+        // 3. 🧠 Combine both responses
+        String combinedReply = """
+            🤖 %s
+
+            🍽️ %s
+            """.formatted(aiReply.strip(), recipeReply.strip());
+
+        recipeResponse.put("reply", combinedReply);
+
+        return ResponseEntity.ok(recipeResponse);
     }
 
     /**
-     * Ingredient suggestion endpoint.
-     * Supports real-time dropdown suggestions while typing.
+     * Suggest endpoint for ingredient auto-complete
      */
     @GetMapping("/suggestions")
     public List<String> suggest(@RequestParam String input) {

@@ -11,10 +11,12 @@ import java.util.stream.Collectors;
 public class SmartRecipeService {
 
     private final TranslationService translationService;
+    private final ChatService chatService;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public SmartRecipeService(TranslationService translationService) {
+    public SmartRecipeService(TranslationService translationService, ChatService chatService) {
         this.translationService = translationService;
+        this.chatService = chatService;
     }
 
     public Map<String, Object> handleSmartChat(String message, String area, Map<String, Boolean> filters) {
@@ -76,6 +78,10 @@ public class SmartRecipeService {
             String name = meals.get(i).get("strMeal");
             reply.append("• ").append(addIngredientEmojis(name)).append("\n");
         }
+
+        // 🔁 Append Chat AI response from DeepSeek
+        String aiReply = chatService.getChatResponse(message);
+        reply.append("\n🤖 AI says: ").append(aiReply);
 
         response.put("reply", reply.toString());
         response.put("recipes", meals);
