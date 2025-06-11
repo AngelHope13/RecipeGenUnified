@@ -23,7 +23,7 @@ public class SmartRecipeController {
 
     /**
      * Chat endpoint for smart recipe generation and AI conversation.
-     * Accepts user message, area (nationality), and optional filters.
+     * Accepts user message, area (nationality), optional filters, and optional language.
      */
     @PostMapping("/chat")
     public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, Object> request) {
@@ -33,6 +33,7 @@ public class SmartRecipeController {
         }
 
         String area = (String) request.getOrDefault("area", "");
+        String lang = (String) request.getOrDefault("lang", "en"); // 🈶 default to English
 
         Map<String, Boolean> filters = null;
         Object filtersObj = request.get("filters");
@@ -49,8 +50,8 @@ public class SmartRecipeController {
             }
         }
 
-        // ✅ Call smartRecipeService, which already includes AI and recipe logic
-        Map<String, Object> recipeResponse = smartRecipeService.handleSmartChat(message, area, filters);
+        // ✅ Call service and pass language code
+        Map<String, Object> recipeResponse = smartRecipeService.handleSmartChat(message, area, filters, lang);
 
         return ResponseEntity.ok(recipeResponse);
     }

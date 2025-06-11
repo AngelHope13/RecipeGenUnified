@@ -14,20 +14,34 @@ public class SmartRecipeService {
     private final ChatService chatService;
     private final RestTemplate restTemplate = new RestTemplate();
 
+    // ✅ Ingredient synonym mapping
+    private static final Map<String, String> ingredientSynonyms = Map.ofEntries(
+            Map.entry("aubergine", "eggplant"),
+            Map.entry("courgette", "zucchini"),
+            Map.entry("capsicum", "bell pepper"),
+            Map.entry("coriander", "cilantro"),
+            Map.entry("maize", "corn"),
+            Map.entry("mushrooms", "mushroom"),
+            Map.entry("chilli", "chili"),
+            Map.entry("garbanzo", "chickpea"),
+            Map.entry("scallion", "green onion")
+    );
+
     public SmartRecipeService(TranslationService translationService, ChatService chatService) {
         this.translationService = translationService;
         this.chatService = chatService;
     }
 
-    public Map<String, Object> handleSmartChat(String message, String area, Map<String, Boolean> filters) {
+    public Map<String, Object> handleSmartChat(String message, String area, Map<String, Boolean> filters, String lang) {
         Map<String, Object> response = new HashMap<>();
 
-        // Step 1: Translate input
+        // Step 1: Translate input to English for parsing
         String english = translationService.translateToEnglish(message);
 
-        // Step 2: Match input with known ingredients
+        // Step 2: Normalize and match against known ingredients
         List<String> knownIngredients = fetchAllIngredients();
         List<String> words = Arrays.stream(english.toLowerCase().split("[ ,.!?]+"))
+                .map(w -> ingredientSynonyms.getOrDefault(w, w))
                 .collect(Collectors.toList());
 
         List<String> matched = new ArrayList<>();
@@ -40,14 +54,12 @@ public class SmartRecipeService {
             }
         }
 
-        // Step 3: Handle no matches
         if (matched.isEmpty()) {
             response.put("reply", "😥 Sorry, I couldn't recognize any ingredients in your message.");
             response.put("recipes", Collections.emptyList());
             return response;
         }
 
-        // Step 4: Full match
         List<Map<String, String>> meals = fetchRecipes(String.join(",", matched), area);
 
         StringBuilder reply = new StringBuilder();
@@ -55,7 +67,6 @@ public class SmartRecipeService {
             meals = applyFilters(meals, filters);
             reply.append("🍽️ Here are recipes based on your ingredients:\n\n");
         } else {
-            // Step 5: Partial match fallback
             reply.append("🔍 No full matches found. Showing partial results:\n\n");
             Set<String> seen = new HashSet<>();
             meals = new ArrayList<>();
@@ -79,8 +90,9 @@ public class SmartRecipeService {
             reply.append("• ").append(addIngredientEmojis(name)).append("\n");
         }
 
-        // 🔁 Append Chat AI response from Gemini (via ChatService)
+        // 🧠 Ask Gemini AI (still in user language)
         String aiReply = chatService.getChatResponse(message);
+
         reply.append("\n🤖 AI says: ").append(aiReply);
 
         response.put("reply", reply.toString());
