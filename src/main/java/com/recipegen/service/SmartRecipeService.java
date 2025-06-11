@@ -79,7 +79,7 @@ public class SmartRecipeService {
             reply.append("• ").append(addIngredientEmojis(name)).append("\n");
         }
 
-        // 🔁 Append Chat AI response from DeepSeek
+        // 🔁 Append Chat AI response from Gemini (via ChatService)
         String aiReply = chatService.getChatResponse(message);
         reply.append("\n🤖 AI says: ").append(aiReply);
 
@@ -104,7 +104,6 @@ public class SmartRecipeService {
 
             if (meals == null) return Collections.emptyList();
 
-            // 🗺️ Filter by area using meal lookup
             if (area != null && !area.isEmpty()) {
                 List<Map<String, String>> filtered = new ArrayList<>();
                 for (Map<String, String> meal : meals) {

@@ -49,21 +49,8 @@ public class SmartRecipeController {
             }
         }
 
-        // 1. 🍳 Get recipe suggestions based on ingredients
+        // ✅ Call smartRecipeService, which already includes AI and recipe logic
         Map<String, Object> recipeResponse = smartRecipeService.handleSmartChat(message, area, filters);
-        String recipeReply = (String) recipeResponse.getOrDefault("reply", "");
-
-        // 2. 🤖 Generate chatbot response using DeepSeek AI
-        String aiReply = chatService.getChatResponse(message);
-
-        // 3. 🧠 Combine both responses
-        String combinedReply = """
-            🤖 %s
-
-            🍽️ %s
-            """.formatted(aiReply.strip(), recipeReply.strip());
-
-        recipeResponse.put("reply", combinedReply);
 
         return ResponseEntity.ok(recipeResponse);
     }

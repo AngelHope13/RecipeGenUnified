@@ -10,48 +10,62 @@ import java.util.*;
 @Service
 public class ChatService {
 
-    @Value("${deepseek.api.key}")
-    private String apiKey;
+    @Value("${gemini.api.key}")
+    private String geminiApiKey;
 
-    private static final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
+    // ✅ Corrected Gemini model endpoint
+    private static final String GEMINI_API_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public String getChatResponse(String userMessage) {
+        String url = GEMINI_API_URL + geminiApiKey;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", userMessage)
+                        ))
+                )
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
         try {
-            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+            System.out.println("🔍 Gemini raw response: " + response.getBody());
 
-            // Headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + apiKey);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
+                if (candidates != null && !candidates.isEmpty()) {
+                    Map<String, Object> first = candidates.get(0);
 
-            // Request body
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "deepseek-chat");
+                    // ✅ Extract from: content → parts → text
+                    if (first.containsKey("content")) {
+                        Map<String, Object> content = (Map<String, Object>) first.get("content");
+                        if (content != null && content.containsKey("parts")) {
+                            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                            if (parts != null && !parts.isEmpty() && parts.get(0).containsKey("text")) {
+                                return parts.get(0).get("text").toString();
+                            }
+                        }
+                    }
 
-            List<Map<String, String>> messages = new ArrayList<>();
-            messages.add(Map.of("role", "system", "content", "You are a friendly cooking assistant."));
-            messages.add(Map.of("role", "user", "content", userMessage));
-
-            requestBody.put("messages", messages);
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-
-            // Call OpenRouter (DeepSeek)
-            ResponseEntity<Map> response = restTemplate.postForEntity(API_URL, requestEntity, Map.class);
-
-            // Parse response
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return message.get("content").toString();
+                    // 🟨 Optional fallback
+                    if (first.containsKey("text")) {
+                        return first.get("text").toString();
+                    }
                 }
             }
 
-            return "⚠️ AI could not respond at this time.";
         } catch (Exception e) {
-            System.err.println("🔌 DeepSeek API Error: " + e.getMessage());
-            return "⚠️ Something went wrong connecting to the AI. Please try again later.";
+            System.err.println("⚠️ Gemini API error: " + e.getMessage());
         }
+
+        return "Sorry, I couldn't generate a recipe right now.";
     }
 }
