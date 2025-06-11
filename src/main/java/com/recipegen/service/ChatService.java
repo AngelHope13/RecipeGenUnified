@@ -13,39 +13,44 @@ public class ChatService {
     @Value("${deepseek.api.key}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private static final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-    public String getChatResponse(String message) {
-        String apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "deepseek-chat");
-        requestBody.put("messages", List.of(
-                Map.of("role", "system", "content", "You are a helpful recipe assistant."),
-                Map.of("role", "user", "content", message)
-        ));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
-        headers.set("HTTP-Referer", "https://yourapp.com");
-        headers.set("X-Title", "Recipe Explorer");
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
+    public String getChatResponse(String userMessage) {
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
-            List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+            RestTemplate restTemplate = new RestTemplate();
 
-            if (choices != null && !choices.isEmpty()) {
-                Map<String, Object> messageObj = (Map<String, Object>) choices.get(0).get("message");
-                return messageObj.get("content").toString();
+            // Headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "Bearer " + apiKey);
+
+            // Request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "deepseek-chat");
+
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(Map.of("role", "system", "content", "You are a friendly cooking assistant."));
+            messages.add(Map.of("role", "user", "content", userMessage));
+
+            requestBody.put("messages", messages);
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            // Call OpenRouter (DeepSeek)
+            ResponseEntity<Map> response = restTemplate.postForEntity(API_URL, requestEntity, Map.class);
+
+            // Parse response
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return message.get("content").toString();
+                }
             }
 
-            return "⚠️ AI did not return a valid response.";
-
+            return "⚠️ AI could not respond at this time.";
         } catch (Exception e) {
-            System.err.println("⚠️ DeepSeek error: " + e.getMessage());
+            System.err.println("🔌 DeepSeek API Error: " + e.getMessage());
             return "⚠️ Something went wrong connecting to the AI. Please try again later.";
         }
     }
