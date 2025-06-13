@@ -105,6 +105,19 @@ header {
     background-color: #e0f2f1;
 }
 
+.user-message, .bot-message {
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 6px;
+    background: #f4f4f4;
+    font-family: 'Segoe UI', sans-serif;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+.bot-message {
+    background-color: #fff8dc;
+}
+
 /* Toast Notification */
 .toast {
     visibility: hidden;

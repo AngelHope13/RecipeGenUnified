@@ -1,3 +1,4 @@
+
 // --- Generate Clickable Recipe Cards ---
 function displayRecipes(meals) {
     const resultContainer = document.getElementById("resultedRecipes");
@@ -42,34 +43,68 @@ if (chatForm) {
         };
 
         try {
+            // 1. Gemini response
             const response = await fetch("http://localhost:8081/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: query, area, filters })
             });
-
             const result = await response.json();
             appendMessage("bot", result.reply || "Here are some suggestions:");
 
             if (Array.isArray(result.recipes) && result.recipes.length > 0) {
                 displayRecipes(result.recipes);
-                showToast("Recipes loaded!");
+                showToast("Recipes loaded from Gemini!");
             } else {
                 displayRecipes([]);
-                showToast("No recipes found.");
+                showToast("No Gemini recipes found.");
             }
+
+            // 2. TheMealDB API
+            const mealDbRes = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(query)}`);
+            const mealDbData = await mealDbRes.json();
+            if (mealDbData.meals && mealDbData.meals.length > 0) {
+                appendMessage("bot", "<em>Here are real recipes from TheMealDB:</em>");
+                displayRecipes(mealDbData.meals);
+                showToast("Recipes loaded from TheMealDB!");
+            }
+
         } catch (error) {
-            console.error("❌ Chat error:", error);
-            appendMessage("bot", "Sorry, something went wrong.");
-            showToast("Something went wrong.");
+            console.error("❌ Chat or API error:", error);
+            appendMessage("bot", "Something went wrong while fetching recipes.");
+            showToast("Error loading recipes.");
         }
     });
 }
 
+// ✅ Preserve formatting from Gemini
 function appendMessage(sender, text) {
     const msg = document.createElement("div");
     msg.className = sender === "user" ? "user-message" : "bot-message";
-    msg.textContent = text;
+
+    text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    text = text.replace(/\n/g, "<br>");
+    if (text.includes("•")) {
+        text = text.split("•")
+            .map(line => line.trim())
+            .filter(Boolean)
+            .map(item => `<li>${item}</li>`)
+            .join("");
+        text = `<ul>${text}</ul>`;
+    }
+
+    const emojiMap = {
+        chicken: "🍗", beef: "🥩", pork: "🥓", egg: "🥚", garlic: "🧄", onion: "🧅",
+        cheese: "🧀", carrot: "🥕", fish: "🐟", shrimp: "🦐", crab: "🦀", tomato: "🍅",
+        potato: "🥔", rice: "🍚", pasta: "🍝", milk: "🥛", butter: "🧈", bread: "🍞",
+        apple: "🍎", banana: "🍌", lemon: "🍋", orange: "🍊"
+    };
+
+    text = text.replace(/\b(\w+)\b/g, word =>
+        emojiMap[word.toLowerCase()] ? `${emojiMap[word.toLowerCase()]} ${word}` : word
+    );
+
+    msg.innerHTML = text;
     chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight;
 }

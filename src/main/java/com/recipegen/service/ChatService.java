@@ -13,7 +13,6 @@ public class ChatService {
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    // ✅ Corrected Gemini model endpoint
     private static final String GEMINI_API_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
 
@@ -25,10 +24,13 @@ public class ChatService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        // 🆕 Prompt Gemini to return HTML-formatted response
+        String prompt = "Respond using clear HTML formatting for a chatbot. Use <br> for new lines, and <strong> for important labels. Example: <strong>Nutrition:</strong><br>Carrots are rich in vitamin A.<br><br> Now respond to: " + userMessage;
+
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(
-                                Map.of("text", userMessage)
+                                Map.of("text", prompt)
                         ))
                 )
         );
@@ -44,7 +46,6 @@ public class ChatService {
                 if (candidates != null && !candidates.isEmpty()) {
                     Map<String, Object> first = candidates.get(0);
 
-                    // ✅ Extract from: content → parts → text
                     if (first.containsKey("content")) {
                         Map<String, Object> content = (Map<String, Object>) first.get("content");
                         if (content != null && content.containsKey("parts")) {
@@ -55,7 +56,6 @@ public class ChatService {
                         }
                     }
 
-                    // 🟨 Optional fallback
                     if (first.containsKey("text")) {
                         return first.get("text").toString();
                     }
