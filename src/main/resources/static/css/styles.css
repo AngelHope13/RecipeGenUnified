@@ -1,16 +1,35 @@
 /* Global Styles */
-body {
+* {
+    box-sizing: border-box;
     margin: 0;
-    background-color: #fefefe;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
     font-family: 'Poppins', sans-serif;
     color: #2f2f2f;
     line-height: 1.6;
 }
 
+/* Background Image + Gradient */
+body {
+    background: linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)),
+    url("../images/bg.webp") no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Make Page Fill Height to Stick Footer */
+body > main {
+    flex: 1;
+}
+
 /* Header */
 header {
-    background-color: #f6c90e;
-    color: #1b5e20;
+    background-color: #8e44ad;
+    color: #fff;
     padding: 20px;
     text-align: center;
     display: flex;
@@ -35,13 +54,16 @@ header {
 
 /* Chatbot Section */
 #chatbotSection {
-    background-color: #f1f8e9;
+    background-color: rgba(241, 248, 233, 0.95);
     border-top: 2px solid #c5e1a5;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 40px 20px;
+    position: relative;
 }
 
+/* Chatbox */
 #chatBox {
     max-height: 300px;
     overflow-y: auto;
@@ -53,6 +75,7 @@ header {
     border-radius: 10px;
 }
 
+/* Chat Form */
 .chat-form {
     display: flex;
     gap: 10px;
@@ -85,13 +108,16 @@ header {
     color: #5d4037;
 }
 
-/* Chat Messages */
+/* Messages */
 .user-message, .bot-message {
-    margin: 6px 0;
-    padding: 8px 12px;
+    margin: 10px 0;
+    padding: 12px;
     border-radius: 12px;
     max-width: 80%;
     word-wrap: break-word;
+    font-family: 'Segoe UI', sans-serif;
+    white-space: pre-wrap;
+    line-height: 1.6;
 }
 
 .user-message {
@@ -102,19 +128,6 @@ header {
 
 .bot-message {
     align-self: flex-start;
-    background-color: #e0f2f1;
-}
-
-.user-message, .bot-message {
-    margin: 10px 0;
-    padding: 12px;
-    border-radius: 6px;
-    background: #f4f4f4;
-    font-family: 'Segoe UI', sans-serif;
-    white-space: pre-wrap;
-    line-height: 1.6;
-}
-.bot-message {
     background-color: #fff8dc;
 }
 
@@ -212,10 +225,11 @@ header {
 
 /* Footer */
 footer {
+    background: #8e44ad;
+    color: #fff;
     padding: 20px;
     text-align: center;
-    background: #f6c90e;
-    color: #1b5e20;
+    margin-top: auto;
 }
 
 .footer-links {
@@ -223,12 +237,12 @@ footer {
 }
 
 .footer-links a {
-    color: #1b5e20;
+    color: #fff;
     text-decoration: none;
     margin: 0 10px;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media screen and (max-width: 768px) {
     .chat-form {
         flex-direction: column;
