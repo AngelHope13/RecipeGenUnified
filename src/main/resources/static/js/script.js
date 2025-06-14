@@ -1,4 +1,3 @@
-
 // --- Generate Clickable Recipe Cards ---
 function displayRecipes(meals) {
     const resultContainer = document.getElementById("resultedRecipes");
@@ -43,7 +42,6 @@ if (chatForm) {
         };
 
         try {
-            // 1. Gemini response
             const response = await fetch("http://localhost:8081/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -60,7 +58,6 @@ if (chatForm) {
                 showToast("No Gemini recipes found.");
             }
 
-            // 2. TheMealDB API
             const mealDbRes = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(query)}`);
             const mealDbData = await mealDbRes.json();
             if (mealDbData.meals && mealDbData.meals.length > 0) {
@@ -77,7 +74,16 @@ if (chatForm) {
     });
 }
 
-// ✅ Preserve formatting from Gemini
+// ✅ Clear Chat Function
+function clearChat() {
+    if (chatBox) {
+        chatBox.innerHTML = "";
+        appendMessage("bot", "Chat cleared. Start typing your ingredients again!");
+        showToast("Chat cleared.");
+    }
+}
+
+// ✅ Append Message with Formatting + Emoji
 function appendMessage(sender, text) {
     const msg = document.createElement("div");
     msg.className = sender === "user" ? "user-message" : "bot-message";
@@ -109,17 +115,7 @@ function appendMessage(sender, text) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// --- Clear Chat ---
-function clearChat() {
-    const chatBox = document.getElementById("chatBox");
-    if (chatBox) {
-        chatBox.innerHTML = '';
-        appendMessage("bot", "Chat cleared. Start typing your ingredients again!");
-        showToast("Chat cleared.");
-    }
-}
-
-// --- Smart Suggestions Dropdown ---
+// ✅ Smart Suggestions
 const suggestionBox = document.createElement("div");
 suggestionBox.id = "suggestionBox";
 suggestionBox.style.display = "none";
@@ -144,7 +140,6 @@ userInput.addEventListener("input", async () => {
 
 userInput.addEventListener("keydown", (e) => {
     if (suggestionBox.style.display === "none") return;
-
     const items = suggestionBox.querySelectorAll("div");
 
     if (e.key === "ArrowDown") {
@@ -204,7 +199,7 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// --- Load Nationalities Dropdown ---
+// ✅ Load nationalities from TheMealDB
 async function loadNationalities() {
     const select = document.getElementById("countrySelect");
     if (!select) return;
@@ -224,39 +219,15 @@ async function loadNationalities() {
 }
 loadNationalities();
 
-// --- Toast Notification Setup ---
+// ✅ Toast Setup
 function createToastElement() {
-    const toast = document.createElement("div");
-    toast.id = "toast";
-    toast.className = "toast";
-    document.body.appendChild(toast);
-
-    const style = document.createElement("style");
-    style.textContent = `
-        .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #1b5e20;
-            color: #fff;
-            text-align: center;
-            border-radius: 12px;
-            padding: 12px;
-            position: fixed;
-            z-index: 999;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.95em;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            transition: visibility 0s, opacity 0.3s ease-in-out;
-            opacity: 0;
-        }
-        .toast.show {
-            visibility: visible;
-            opacity: 1;
-        }
-    `;
-    document.head.appendChild(style);
+    const toast = document.getElementById("toast");
+    if (!toast) {
+        const newToast = document.createElement("div");
+        newToast.id = "toast";
+        newToast.className = "toast";
+        document.body.appendChild(newToast);
+    }
 }
 
 function showToast(message = "Message sent!") {
