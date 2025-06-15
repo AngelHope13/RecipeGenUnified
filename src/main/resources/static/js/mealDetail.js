@@ -34,31 +34,30 @@ function displayMeal(meal) {
         return;
     }
 
-    // Set meal title and image
     mealTitleEl.textContent = meal.strMeal;
     mealImageEl.src = meal.strMealThumb;
     mealImageEl.alt = meal.strMeal;
 
-    // Render Ingredients
-    ingredientsEl.innerHTML = "<h3>Ingredients</h3>";
+    // Ingredients
+    ingredientsEl.innerHTML = "<h3>🧂 Ingredients</h3>";
     for (let i = 1; i <= 20; i++) {
         const ingredient = meal[`strIngredient${i}`];
         const measure = meal[`strMeasure${i}`];
-
         if (ingredient && ingredient.trim()) {
             const item = document.createElement("div");
+            item.className = "ingredient-item";
             item.innerHTML = `<strong>${ingredient}</strong>: ${measure}`;
             ingredientsEl.appendChild(item);
         }
     }
 
-    // Cooking Instructions
+    // Instructions
     instructionsEl.innerHTML = `
-    <h3>Instructions</h3>
+    <h3>🍳 Instructions</h3>
     <p>${meal.strInstructions}</p>
   `;
 
-    // YouTube Video
+    // YouTube video
     videoSectionEl.innerHTML = "";
     if (meal.strYoutube) {
         const videoId = extractYouTubeID(meal.strYoutube);
@@ -84,9 +83,10 @@ function displayMeal(meal) {
     }
 }
 
-// Utility: Extract YouTube Video ID
+// Utility
 function extractYouTubeID(url) {
     const match = url.match(/[?&]v=([^&]+)/);
     return match ? match[1] : null;
 }
-S
+
+

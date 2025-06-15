@@ -25,6 +25,20 @@ const chatForm = document.getElementById("chatForm");
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
 
+function showLoader() {
+    const loader = document.createElement("div");
+    loader.id = "chatLoader";
+    loader.className = "bot-message";
+    loader.innerHTML = `<span class="spinner"></span> <em>Typing...</em>`;
+    chatBox.appendChild(loader);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function hideLoader() {
+    const loader = document.getElementById("chatLoader");
+    if (loader) loader.remove();
+}
+
 if (chatForm) {
     chatForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -33,6 +47,8 @@ if (chatForm) {
 
         appendMessage("user", query);
         userInput.value = "";
+
+        showLoader();
 
         const area = document.getElementById("countrySelect")?.value || "";
         const filters = {
@@ -48,6 +64,8 @@ if (chatForm) {
                 body: JSON.stringify({ message: query, area, filters })
             });
             const result = await response.json();
+
+            hideLoader();
             appendMessage("bot", result.reply || "Here are some suggestions:");
 
             if (Array.isArray(result.recipes) && result.recipes.length > 0) {
@@ -67,6 +85,7 @@ if (chatForm) {
             }
 
         } catch (error) {
+            hideLoader();
             console.error("❌ Chat or API error:", error);
             appendMessage("bot", "Something went wrong while fetching recipes.");
             showToast("Error loading recipes.");
@@ -119,6 +138,14 @@ function appendMessage(sender, text) {
 const suggestionBox = document.createElement("div");
 suggestionBox.id = "suggestionBox";
 suggestionBox.style.display = "none";
+suggestionBox.style.position = "absolute";
+suggestionBox.style.zIndex = "1000";
+suggestionBox.style.backgroundColor = "#fff";
+suggestionBox.style.border = "1px solid #ccc";
+suggestionBox.style.borderRadius = "8px";
+suggestionBox.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+suggestionBox.style.maxHeight = "200px";
+suggestionBox.style.overflowY = "auto";
 document.body.appendChild(suggestionBox);
 
 let suggestions = [];
@@ -162,7 +189,8 @@ function showSuggestions(list) {
         const div = document.createElement("div");
         div.textContent = item;
         div.style.cursor = "pointer";
-        div.style.padding = "6px";
+        div.style.padding = "6px 10px";
+        div.style.borderBottom = "1px solid #eee";
         div.addEventListener("click", () => {
             const words = userInput.value.trim().split(" ");
             words[words.length - 1] = item;

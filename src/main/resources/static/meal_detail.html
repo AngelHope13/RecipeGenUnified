@@ -2,65 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Meal Details</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" />
 </head>
 <body>
-
-<!-- Header -->
 <header>
-    <img src="images/logo.png" alt="Logo" class="header-logo" />
+    <img src="images/replogo.png" alt="Logo" class="header-logo" />
     <h1 class="hero-title">🍴 Meal Details</h1>
 </header>
 
-<main class="meal-detail-container">
-    <!-- Meal Image & Title -->
-    <section class="meal-header">
-        <img id="mealImage" class="meal-image" src="" alt="Meal Image" />
-        <div class="meal-info">
-            <h2 id="mealTitle">Loading...</h2>
-            <div class="meal-meta">
-                <p><strong>Preparation Time:</strong> ~30 minutes</p>
-                <p><strong>Cooking Materials:</strong> Pan, Knife, Bowl</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Ingredients -->
-    <section class="ingredients-section">
-        <h3>Ingredients</h3>
-        <div class="ingredients" id="ingredients"></div>
-    </section>
-
-    <!-- Instructions -->
-    <section class="instructions-section" id="instructions"></section>
-
-    <!-- Video -->
-    <section class="video-section" id="videoSection" style="display: none;">
-        <h3>Watch How to Make It</h3>
-        <iframe id="mealVideo" width="100%" height="315" frameborder="0" allowfullscreen></iframe>
-    </section>
-
-    <!-- Affirmation -->
-    <section class="affirmation">
-        <blockquote>"Great meals start with great choices. Keep nourishing your body and mind!"</blockquote>
-    </section>
+<main class="meal-container">
+    <img id="mealImage" class="meal-image" alt="Meal Image" />
+    <h2 id="mealTitle" class="meal-title"></h2>
+    <div id="ingredients" class="ingredients"></div>
+    <div id="instructions" class="instructions"></div>
+    <div id="videoSection" class="video-section"></div>
 </main>
 
-<!-- Footer -->
-<footer>
-    <img src="images/logo.png" alt="Logo" class="logo" />
-    <div class="footer-links">
-        <a href="index.html">Home</a>
-        <a href="#">Contact</a>
-        <a href="#">GitHub</a>
-    </div>
-    <p>&copy; 2025 Recipe Explorer. All rights reserved.</p>
-</footer>
-
-<!-- External JS -->
 <script src="js/mealDetail.js"></script>
 </body>
 </html>
+
