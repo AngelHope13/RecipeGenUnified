@@ -13,17 +13,27 @@
 </header>
 
 <main class="meal-container">
+    <!-- Top meal image -->
     <img id="mealImage" class="meal-image" alt="Meal Image" />
     <h2 id="mealTitle" class="meal-title"></h2>
 
-    <section id="ingredients" class="ingredients"></section>
+    <!-- Responsive two-column layout -->
+    <div class="meal-content">
+        <section id="ingredients" class="ingredients">
+            <h3>🧂 Ingredients</h3>
+            <ul id="ingredientList"></ul>
+        </section>
 
-    <section id="instructions" class="instructions">
-        <h3>📜 Instructions</h3>
-        <ul id="instructionList"></ul>
-    </section>
+        <section id="instructions" class="instructions">
+            <h3>📜 Instructions</h3>
+            <ol id="instructionList"></ol>
+        </section>
+    </div>
 
-    <div id="videoSection" class="video-section"></div>
+    <!-- Embedded YouTube video -->
+    <div id="videoSection" class="video-section">
+        <iframe src="https://www.youtube.com/embed/yourVideoId" allowfullscreen></iframe>
+    </div>
 </main>
 
 <script src="js/mealDetail.js"></script>

@@ -41,7 +41,14 @@ function displayRecipes(meals) {
     meals.forEach(meal => {
         const card = document.createElement("a");
         card.className = "result-card";
-        card.href = `meal_detail.html?id=${meal.idMeal}`;
+
+        if (meal.source === "spoonacular") {
+            card.href = `https://spoonacular.com/recipes/${meal.strMeal.replace(/\s+/g, "-").toLowerCase()}-${meal.idMeal}`;
+            card.target = "_blank";
+        } else {
+            card.href = `meal_detail.html?id=${meal.idMeal}`;
+        }
+
         card.innerHTML = `
             <img src="${meal.strMealThumb}" alt="${meal.strMeal}" />
             <h4>${meal.strMeal}</h4>
@@ -93,7 +100,7 @@ if (chatForm) {
             const response = await fetch("http://localhost:8081/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: query, area, filters })
+                body: JSON.stringify({ message: query, area, filters, lang: langSelect.value })
             });
             const result = await response.json();
 
@@ -102,18 +109,10 @@ if (chatForm) {
 
             if (Array.isArray(result.recipes) && result.recipes.length > 0) {
                 displayRecipes(result.recipes);
-                showToast("Recipes loaded from Gemini!");
+                showToast("Recipes loaded!");
             } else {
                 displayRecipes([]);
-                showToast("No Gemini recipes found.");
-            }
-
-            const mealDbRes = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(query)}`);
-            const mealDbData = await mealDbRes.json();
-            if (mealDbData.meals && mealDbData.meals.length > 0) {
-                appendMessage("bot", "<em>Here are real recipes from TheMealDB:</em>");
-                displayRecipes(mealDbData.meals);
-                showToast("Recipes loaded from TheMealDB!");
+                showToast("No recipes found.");
             }
 
         } catch (error) {
@@ -130,17 +129,21 @@ function appendMessage(sender, text) {
     const msg = document.createElement("div");
     msg.className = sender === "user" ? "user-message" : "bot-message";
 
+    // Convert markdown and line breaks
     text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     text = text.replace(/\n/g, "<br>");
+
+    // Bullet to list
     if (text.includes("•")) {
-        text = text.split("•")
+        text = `<ul>${text
+            .split("•")
             .map(line => line.trim())
             .filter(Boolean)
             .map(item => `<li>${item}</li>`)
-            .join("");
-        text = `<ul>${text}</ul>`;
+            .join("")}</ul>`;
     }
 
+    // Inject emojis
     const emojiMap = {
         chicken: "🍗", beef: "🥩", pork: "🥓", egg: "🥚", garlic: "🧄", onion: "🧅",
         cheese: "🧀", carrot: "🥕", fish: "🐟", shrimp: "🦐", crab: "🦀", tomato: "🍅",

@@ -22,7 +22,7 @@
         <div class="bot-message" id="greeting">👋 Hi there! Type your ingredients and I’ll help you cook something delicious.</div>
     </div>
     <form id="chatForm" onsubmit="sendMessage(); return false;" class="chat-form">
-        <div style="position: relative; width: 100%; max-width: 600px;">
+        <div style="position: relative; width: 100%; max-width: 800px;">
             <input
                     type="text"
                     id="userInput"
@@ -30,7 +30,6 @@
                     autocomplete="off"
                     required
             />
-            <!-- Autocomplete dropdown container -->
             <div id="suggestionBox" class="suggestion-box"></div>
         </div>
         <button type="submit" id="send-button">Send</button>
@@ -67,19 +66,11 @@
     <!-- Recipes will be inserted here -->
 </section>
 
-<!-- Main Search Engine & Carousel -->
+<!-- Carousel Section Only -->
 <section id="searchEngine" class="section-padded">
-    <div class="search-section">
-        <input />
-    </div>
-
     <div id="carouselContainer" class="carousel-wrapper"></div>
-
     <div class="meal-grid" id="mealGrid"></div>
-
-    <div class="alphabet-filter" id="alphabetFilter">
-        <!-- A–Z letter filters can be placed here -->
-    </div>
+    <div class="alphabet-filter" id="alphabetFilter"></div>
 </section>
 
 <!-- Toast Notification -->
@@ -87,16 +78,15 @@
 
 <!-- Footer -->
 <footer>
-    <img src="images/replogo.png" alt="JOAICA & HOPE" class="logo" />
     <div class="footer-links">
         <a href="https://www.notion.so/Recipe-Generator-Based-on-Ingredients-1e46e4115ad8805290bde5b0749dd3ee">Recipe Generator Based on Ingredients</a>
         <a href="https://www.themealdb.com/">THE MEALDB</a>
         <a href="https://www.notion.so/JOAICA-MARIE-S-PONCE-12e61fb67f5980458345df1db47ae5a6">ABOUT 宋喬莉</a>
         <a href="https://www.notion.so/Mo-Yu-Yi-12e6e4115ad880a99ba4d75043099727?source=copy_link">AND ABOUT 莫羽翼</a>
     </div>
-    <p>&copy; Copyright @Joaica Ponce and @Angel Hope Feniza</p>
-    <p>&copy; Address: 高雄市燕巢區橫山路59號 &nbsp;&nbsp; Line: 宋喬莉 & 莫羽翼</p>
-    <p>&copy; E-Mail: s24113308@stu.edu.tw and s24113326@stu.edu.tw</p>
+    <p>&copy; Joaica Ponce and Angel Hope Feniza</p>
+    <p>Address: 高雄市燕巢區橫山路59號 — Line: 宋喬莉 & 莫羽翼</p>
+    <p>Email: s24113308@stu.edu.tw and s24113326@stu.edu.tw</p>
 </footer>
 
 <!-- JS Scripts -->

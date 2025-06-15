@@ -24,8 +24,27 @@ public class ChatService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // 🆕 Prompt Gemini to return HTML-formatted response
-        String prompt = "Respond using clear HTML formatting for a chatbot. Use <br> for new lines, and <strong> for important labels. Example: <strong>Nutrition:</strong><br>Carrots are rich in vitamin A.<br><br> Now respond to: " + userMessage;
+        // 🔐 Gemini Prompt: enforce safety and formatting
+        String prompt = """
+            You are a cooking assistant embedded in a recipe site that already shows full recipes.
+
+            🚫 DO NOT:
+            - Suggest dish names
+            - Provide cooking instructions or steps
+            - Mention any full recipe title
+
+            ✅ INSTEAD:
+            - Share ingredient storage tips
+            - Recommend substitutions or nutritional hacks
+            - Suggest flavor combos or prep techniques
+
+            📋 Format:
+            <strong>Cooking Tip:</strong><br>
+            Start your message with this and use <br> for line breaks.
+            Add a short <em>follow-up question</em> at the end.
+
+            Now provide one short piece of advice for: %s
+            """.formatted(userMessage);
 
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
@@ -39,24 +58,24 @@ public class ChatService {
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
-            System.out.println("🔍 Gemini raw response: " + response.getBody());
+            System.out.println("🔍 Gemini API response: " + response.getBody());
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
                 if (candidates != null && !candidates.isEmpty()) {
                     Map<String, Object> first = candidates.get(0);
 
-                    if (first.containsKey("content")) {
-                        Map<String, Object> content = (Map<String, Object>) first.get("content");
-                        if (content != null && content.containsKey("parts")) {
-                            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                            if (parts != null && !parts.isEmpty() && parts.get(0).containsKey("text")) {
-                                return parts.get(0).get("text").toString();
-                            }
+                    // Preferred response structure
+                    Map<String, Object> content = (Map<String, Object>) first.get("content");
+                    if (content != null && content.get("parts") instanceof List<?> parts) {
+                        Map<String, Object> part = (Map<String, Object>) parts.get(0);
+                        if (part != null && part.get("text") != null) {
+                            return part.get("text").toString();
                         }
                     }
 
-                    if (first.containsKey("text")) {
+                    // Fallback: top-level text
+                    if (first.get("text") != null) {
                         return first.get("text").toString();
                     }
                 }
@@ -66,6 +85,7 @@ public class ChatService {
             System.err.println("⚠️ Gemini API error: " + e.getMessage());
         }
 
-        return "Sorry, I couldn't generate a recipe right now.";
+        // Default fallback response
+        return "<strong>Cooking Tip:</strong><br>Store herbs with damp paper towels to keep them fresh longer.<br><em>Want more herb storage tips?</em>";
     }
 }

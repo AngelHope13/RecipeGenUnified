@@ -22,42 +22,44 @@ public class SmartRecipeController {
     }
 
     /**
-     * Chat endpoint for smart recipe generation and AI conversation.
-     * Accepts user message, area (nationality), optional filters, and optional language.
+     * POST /chat — Accepts a message and returns recipes + a cooking tip.
      */
     @PostMapping("/chat")
     public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, Object> request) {
-        Object msgObj = request.get("message");
-        if (!(msgObj instanceof String message) || message.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or missing message"));
-        }
+        try {
+            Object msgObj = request.get("message");
+            if (!(msgObj instanceof String message) || message.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid or missing message"));
+            }
 
-        String area = (String) request.getOrDefault("area", "");
-        String lang = (String) request.getOrDefault("lang", "en"); // 🈶 default to English
+            String area = (String) request.getOrDefault("area", "");
+            String lang = (String) request.getOrDefault("lang", "en");
 
-        Map<String, Boolean> filters = null;
-        Object filtersObj = request.get("filters");
-        if (filtersObj instanceof Map<?, ?> map) {
-            try {
-                filters = map.entrySet().stream()
+            Map<String, Boolean> filters = Collections.emptyMap();
+            Object filtersObj = request.get("filters");
+
+            if (filtersObj instanceof Map<?, ?> map) {
+                filters = new HashMap<>(map.entrySet().stream()
                         .filter(e -> e.getKey() instanceof String && e.getValue() instanceof Boolean)
                         .collect(Collectors.toMap(
                                 e -> (String) e.getKey(),
                                 e -> (Boolean) e.getValue()
-                        ));
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Invalid filters format"));
+                        )));
             }
+
+            System.out.println("📩 Request received | message=\"" + message + "\", area=" + area + ", filters=" + filters + ", lang=" + lang);
+
+            Map<String, Object> recipeResponse = smartRecipeService.handleSmartChat(message, area, filters, lang);
+            return ResponseEntity.ok(recipeResponse);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", "Unexpected server error: " + e.getMessage()));
         }
-
-        // ✅ Call service and pass language code
-        Map<String, Object> recipeResponse = smartRecipeService.handleSmartChat(message, area, filters, lang);
-
-        return ResponseEntity.ok(recipeResponse);
     }
 
     /**
-     * Suggest endpoint for ingredient auto-complete
+     * GET /suggestions — Returns ingredient suggestions based on partial input.
      */
     @GetMapping("/suggestions")
     public List<String> suggest(@RequestParam String input) {
