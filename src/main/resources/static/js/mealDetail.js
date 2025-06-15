@@ -51,11 +51,15 @@ function displayMeal(meal) {
         }
     }
 
-    // Instructions
-    instructionsEl.innerHTML = `
-    <h3>🍳 Instructions</h3>
-    <p>${meal.strInstructions}</p>
-  `;
+    // Instructions - better formatting
+    instructionsEl.innerHTML = `<h3>🍳 Instructions</h3>`;
+    const steps = meal.strInstructions.split(/\r?\n/).filter(line => line.trim() !== "");
+    steps.forEach((step, index) => {
+        const p = document.createElement("p");
+        p.className = "instruction-step";
+        p.innerHTML = `<strong>Step ${index + 1}:</strong> ${step}`;
+        instructionsEl.appendChild(p);
+    });
 
     // YouTube video
     videoSectionEl.innerHTML = "";
@@ -63,7 +67,7 @@ function displayMeal(meal) {
         const videoId = extractYouTubeID(meal.strYoutube);
         const iframe = document.createElement("iframe");
         iframe.width = "100%";
-        iframe.height = "400";
+        iframe.height = "350";
         iframe.src = `https://www.youtube.com/embed/${videoId}`;
         iframe.allowFullscreen = true;
         iframe.style.borderRadius = "12px";
@@ -88,5 +92,3 @@ function extractYouTubeID(url) {
     const match = url.match(/[?&]v=([^&]+)/);
     return match ? match[1] : null;
 }
-
-

@@ -1,10 +1,40 @@
-// --- Generate Clickable Recipe Cards ---
+// --- LANGUAGE SWITCHER ---
+function applyTranslations(lang) {
+    if (!translations[lang]) return;
+    const t = translations[lang];
+
+    document.getElementById("greeting").innerText = t.greeting;
+    document.getElementById("send-button").innerText = t.send;
+    document.getElementById("nationality-label").innerText = t.chooseNationality;
+    document.getElementById("vegetarian-label").innerText = t.vegetarian;
+    document.getElementById("lowfat-label").innerText = t.lowFat;
+    document.getElementById("under30-label").innerText = t.under30;
+
+    if (document.getElementById("toast")?.innerText.includes("No recipes found")) {
+        document.getElementById("toast").innerText = t.noMatch;
+    }
+}
+
+const langSelect = document.getElementById("lang-switcher");
+if (langSelect) {
+    const savedLang = localStorage.getItem("lang") || "en";
+    langSelect.value = savedLang;
+    applyTranslations(savedLang);
+
+    langSelect.addEventListener("change", () => {
+        const selectedLang = langSelect.value;
+        localStorage.setItem("lang", selectedLang);
+        applyTranslations(selectedLang);
+    });
+}
+
+// --- Recipe Card Generator ---
 function displayRecipes(meals) {
     const resultContainer = document.getElementById("resultedRecipes");
     resultContainer.innerHTML = "";
 
     if (!meals || meals.length === 0) {
-        resultContainer.innerHTML = "<p>No recipes found. Try another ingredient!</p>";
+        resultContainer.innerHTML = `<p id="no-recipes-msg">${translations[langSelect.value]?.noMatch || "No recipes found. Try another ingredient!"}</p>`;
         return;
     }
 
@@ -24,6 +54,7 @@ function displayRecipes(meals) {
 const chatForm = document.getElementById("chatForm");
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
+const suggestionBox = document.getElementById("suggestionBox");
 
 function showLoader() {
     const loader = document.createElement("div");
@@ -47,6 +78,7 @@ if (chatForm) {
 
         appendMessage("user", query);
         userInput.value = "";
+        suggestionBox.innerHTML = "";
 
         showLoader();
 
@@ -93,16 +125,7 @@ if (chatForm) {
     });
 }
 
-// ✅ Clear Chat Function
-function clearChat() {
-    if (chatBox) {
-        chatBox.innerHTML = "";
-        appendMessage("bot", "Chat cleared. Start typing your ingredients again!");
-        showToast("Chat cleared.");
-    }
-}
-
-// ✅ Append Message with Formatting + Emoji
+// --- Append Message to Chat ---
 function appendMessage(sender, text) {
     const msg = document.createElement("div");
     msg.className = sender === "user" ? "user-message" : "bot-message";
@@ -134,100 +157,27 @@ function appendMessage(sender, text) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ✅ Smart Suggestions
-const suggestionBox = document.createElement("div");
-suggestionBox.id = "suggestionBox";
-suggestionBox.style.display = "none";
-suggestionBox.style.position = "absolute";
-suggestionBox.style.zIndex = "1000";
-suggestionBox.style.backgroundColor = "#fff";
-suggestionBox.style.border = "1px solid #ccc";
-suggestionBox.style.borderRadius = "8px";
-suggestionBox.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-suggestionBox.style.maxHeight = "200px";
-suggestionBox.style.overflowY = "auto";
-document.body.appendChild(suggestionBox);
-
-let suggestions = [];
-let selectedIndex = -1;
-
-userInput.addEventListener("input", async () => {
-    const lastWord = userInput.value.trim().split(" ").pop();
-    if (!lastWord) return hideSuggestions();
-
-    try {
-        const res = await fetch(`http://localhost:8081/api/suggestions?input=${lastWord}`);
-        suggestions = await res.json();
-        selectedIndex = -1;
-        showSuggestions(suggestions);
-    } catch {
-        hideSuggestions();
+// --- Toast Notification ---
+function createToastElement() {
+    const toast = document.getElementById("toast");
+    if (!toast) {
+        const newToast = document.createElement("div");
+        newToast.id = "toast";
+        newToast.className = "toast";
+        document.body.appendChild(newToast);
     }
-});
-
-userInput.addEventListener("keydown", (e) => {
-    if (suggestionBox.style.display === "none") return;
-    const items = suggestionBox.querySelectorAll("div");
-
-    if (e.key === "ArrowDown") {
-        selectedIndex = (selectedIndex + 1) % suggestions.length;
-        updateSelection(items);
-        e.preventDefault();
-    } else if (e.key === "ArrowUp") {
-        selectedIndex = (selectedIndex - 1 + suggestions.length) % suggestions.length;
-        updateSelection(items);
-        e.preventDefault();
-    } else if (e.key === "Enter" && selectedIndex >= 0) {
-        items[selectedIndex].click();
-        e.preventDefault();
-    }
-});
-
-function showSuggestions(list) {
-    suggestionBox.innerHTML = "";
-    list.forEach(item => {
-        const div = document.createElement("div");
-        div.textContent = item;
-        div.style.cursor = "pointer";
-        div.style.padding = "6px 10px";
-        div.style.borderBottom = "1px solid #eee";
-        div.addEventListener("click", () => {
-            const words = userInput.value.trim().split(" ");
-            words[words.length - 1] = item;
-            userInput.value = words.join(" ") + " ";
-            hideSuggestions();
-            userInput.focus();
-        });
-        suggestionBox.appendChild(div);
-    });
-
-    const rect = userInput.getBoundingClientRect();
-    suggestionBox.style.left = `${rect.left + window.scrollX}px`;
-    suggestionBox.style.top = `${rect.bottom + window.scrollY}px`;
-    suggestionBox.style.width = `${rect.width}px`;
-    suggestionBox.style.display = list.length ? "block" : "none";
 }
 
-function updateSelection(items) {
-    items.forEach((item, idx) => {
-        item.style.backgroundColor = idx === selectedIndex ? "#f6c90e" : "#fff";
-        item.style.color = idx === selectedIndex ? "#1b5e20" : "#000";
-    });
+function showToast(message = "Message sent!") {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 3000);
 }
+createToastElement();
 
-function hideSuggestions() {
-    suggestionBox.style.display = "none";
-    suggestions = [];
-    selectedIndex = -1;
-}
-
-document.addEventListener("click", (e) => {
-    if (!suggestionBox.contains(e.target) && e.target !== userInput) {
-        hideSuggestions();
-    }
-});
-
-// ✅ Load nationalities from TheMealDB
+// --- Load Country Nationalities ---
 async function loadNationalities() {
     const select = document.getElementById("countrySelect");
     if (!select) return;
@@ -247,23 +197,47 @@ async function loadNationalities() {
 }
 loadNationalities();
 
-// ✅ Toast Setup
-function createToastElement() {
-    const toast = document.getElementById("toast");
-    if (!toast) {
-        const newToast = document.createElement("div");
-        newToast.id = "toast";
-        newToast.className = "toast";
-        document.body.appendChild(newToast);
+// --- Ingredient Autocomplete ---
+let ingredientList = [];
+
+async function fetchIngredients() {
+    try {
+        const res = await fetch("https://www.themealdb.com/api/json/v1/1/list.php?i=list");
+        const data = await res.json();
+        ingredientList = data.meals.map(meal => meal.strIngredient.toLowerCase());
+    } catch (err) {
+        console.error("Failed to fetch ingredients:", err);
     }
 }
+fetchIngredients();
 
-function showToast(message = "Message sent!") {
-    const toast = document.getElementById("toast");
-    if (!toast) return;
-    toast.textContent = message;
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
-}
+userInput.addEventListener("input", () => {
+    const query = userInput.value.toLowerCase().trim();
+    if (!query || ingredientList.length === 0) {
+        suggestionBox.innerHTML = "";
+        suggestionBox.style.display = "none";
+        return;
+    }
 
-createToastElement();
+    const matches = ingredientList
+        .filter(ing => ing.includes(query))
+        .slice(0, 5);
+
+    if (matches.length > 0) {
+        suggestionBox.innerHTML = matches.map(ing =>
+            `<div class="suggestion-item">${ing}</div>`
+        ).join("");
+        suggestionBox.style.display = "block";
+    } else {
+        suggestionBox.innerHTML = "";
+        suggestionBox.style.display = "none";
+    }
+});
+
+suggestionBox.addEventListener("click", (e) => {
+    if (e.target.classList.contains("suggestion-item")) {
+        userInput.value = e.target.textContent;
+        suggestionBox.innerHTML = "";
+        suggestionBox.style.display = "none";
+    }
+});
