@@ -37,7 +37,6 @@ public class SmartRecipeService {
 
     public Map<String, Object> handleSmartChat(String message, String area, Map<String, Boolean> filters, String lang) {
         Map<String, Object> response = new HashMap<>();
-
         String english = translationService.translateToEnglish(message);
         List<String> knownIngredients = fetchAllIngredients();
 
@@ -55,13 +54,21 @@ public class SmartRecipeService {
             }
         }
 
-        // Fallback: if no ingredients API or no matched
         if (knownIngredients.isEmpty()) {
             matched = new ArrayList<>(words.stream().distinct().limit(5).toList());
         }
 
         if (matched.isEmpty()) {
-            response.put("reply", "😥 Sorry, I couldn't recognize any ingredients in your message.");
+            // Funny, conversational fallback
+            List<String> fallbacks = List.of(
+                    "🦒 Haha, I don’t think giraffe belongs in the pantry 😄 — try ingredients like rice or eggs!",
+                    "🚫 Hmm... that doesn't sound edible. Got anything tastier in your fridge?",
+                    "🤔 Are you testing me? Let’s stick with real food please!",
+                    "😅 I’m great with food, not fantasy! Give me some real ingredients to work with.",
+                    "🍳 I'm hungry, but even I wouldn't cook that. Try typing things like ‘carrots and beef’!"
+            );
+            String fallback = fallbacks.get(new Random().nextInt(fallbacks.size()));
+            response.put("reply", translationService.translateFromEnglish(fallback, lang));
             response.put("recipes", Collections.emptyList());
             return response;
         }
@@ -69,7 +76,6 @@ public class SmartRecipeService {
         Set<String> seenIds = new HashSet<>();
         List<Map<String, String>> meals = new ArrayList<>();
 
-        // Fetch MealDB for each ingredient individually
         for (String ing : matched) {
             List<Map<String, String>> partialResults = fetchRecipes(ing, area);
             for (Map<String, String> m : partialResults) {
@@ -79,10 +85,9 @@ public class SmartRecipeService {
             }
         }
 
-        // Spoonacular fallback
         List<Map<String, String>> spoonacularMeals = fetchSpoonacularRecipes(String.join(",", matched));
         for (Map<String, String> meal : spoonacularMeals) {
-            if (!seenIds.contains(meal.get("idMeal"))) {
+            if (seenIds.add(meal.get("idMeal"))) {
                 meals.add(meal);
             }
         }
@@ -90,25 +95,34 @@ public class SmartRecipeService {
         meals = applyFilters(meals, filters);
 
         StringBuilder reply = new StringBuilder();
-        reply.append(meals.isEmpty() ? "🔍 No full matches found. Displaying similar results below.\n\n"
+        reply.append(meals.isEmpty()
+                ? "🔍 No full matches found. Displaying similar results below.\n\n"
                 : "🍽 Recipes based on your ingredients are shown below.\n\n");
 
-        String prompt = """
-            The user mentioned: %s.
-            DO NOT include recipes, dish names, steps, or ingredients.
-            ✅ Instead, share one cooking tip, food myth, kitchen hack, or ingredient substitution.
-            Format it like:
-            <strong>Cooking Tip:</strong><br>Onions are sweeter when sautéed slowly.
-            <em>Want to know why onions make you cry?</em>
-            """.formatted(String.join(", ", matched));
+        // AI tip
+        String prompt = String.format("""
+                The user mentioned: %s.
+                DO NOT include recipes, dish names, steps, or ingredients.
+                Instead, share one cooking tip, food myth, kitchen hack, or ingredient substitution.
+                Format it like:
+                <strong>Cooking Tip:</strong><br>Onions are sweeter when sautéed slowly.
+                <em>Want to know why onions make you cry?</em>
+                """, String.join(", ", matched));
 
         String aiReply = chatService.getChatResponse(prompt);
+
+        // Prevent repetition or misuse
         if (aiReply.toLowerCase().matches(".*\\b(recipe|steps?|boil|bake|fry|chop|mix|combine)\\b.*")) {
             aiReply = "<strong>Cooking Tip:</strong><br>Use fresh herbs last for the best aroma.<br><em>Want to learn how to store them longer?</em>";
         }
 
+        // Prevent duplicate tip appending
+        if (!aiReply.toLowerCase().contains("cooking tip")) {
+            aiReply = "<strong>Cooking Tip:</strong><br>Use fresh herbs last for the best aroma.<br><em>Want to learn how to store them longer?</em>";
+        }
+
         reply.append(aiReply);
-        response.put("reply", reply.toString());
+        response.put("reply", translationService.translateFromEnglish(reply.toString(), lang));
         response.put("recipes", meals);
         return response;
     }
