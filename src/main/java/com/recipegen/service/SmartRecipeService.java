@@ -61,7 +61,7 @@ public class SmartRecipeService {
         if (matched.isEmpty()) {
             // Funny, conversational fallback
             List<String> fallbacks = List.of(
-                    "🦒 Haha, I don’t think giraffe belongs in the pantry 😄 — try ingredients like rice or eggs!",
+                    "🦒 Haha, I don’t think that belongs in the pantry 😄 — try ingredients like rice or eggs!",
                     "🚫 Hmm... that doesn't sound edible. Got anything tastier in your fridge?",
                     "🤔 Are you testing me? Let’s stick with real food please!",
                     "😅 I’m great with food, not fantasy! Give me some real ingredients to work with.",
@@ -101,12 +101,11 @@ public class SmartRecipeService {
 
         // AI tip
         String prompt = String.format("""
-                The user mentioned: %s.
+                Based on these ingredients: %s
                 DO NOT include recipes, dish names, steps, or ingredients.
                 Instead, share one cooking tip, food myth, kitchen hack, or ingredient substitution.
                 Format it like:
-                <strong>Cooking Tip:</strong><br>Onions are sweeter when sautéed slowly.
-                <em>Want to know why onions make you cry?</em>
+                <strong>Cooking Tip:</strong><br>Your tip here<br><em>Then ask a playful follow-up</em>
                 """, String.join(", ", matched));
 
         String aiReply = chatService.getChatResponse(prompt);

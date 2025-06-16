@@ -9,3 +9,5 @@ public class RecipeGenApplication {
         SpringApplication.run(RecipeGenApplication.class, args);
     }
 }
+
+//http://localhost:8081/#
